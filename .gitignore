@@ -38,4 +38,8 @@
 *.app
 
 # debug information files
+<<<<<<< HEAD
 *.dwo
+=======
+*.dwo
+>>>>>>> 12ad1bd (First study)
