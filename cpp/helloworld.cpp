@@ -2,7 +2,7 @@
 
 int main() {
     // std::cout을 사용하여 화면에 출력하고 endl로 줄바꿈
-    std::cout << "Hello, World!" << std::endl;
+    std::cout << "Hello, 안녕하세요!" << std::endl;
     
     return 0; // 프로그램 정상 종료
 }
