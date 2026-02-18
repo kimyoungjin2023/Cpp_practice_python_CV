@@ -1,20 +1,20 @@
-#include <opencv2/opencv.hpp>
-using namespace cv;
+#include <opencv2/opencv.hpp> // OpenCV의 모든 핵심 기능 포함
+using namespace cv; // cv :: Mat를 Mat을호
 using namespace std;
 
 int main() {
-    VideoCapture cap(0);
+    VideoCapture cap(0); // OpenCV애서 제공해주는 영상 스트림 관리 클래스
     if (!cap.isOpened()) {
         printf("웹캠 열기 실패\n");
         return -1;
     }
 
-    Mat frame, gray, blurImg, edges;
+    Mat frame, gray, blurImg, edges; // 변수 선언 frame : 원본 컬러 영상, gray : 흑백영상 , blurImg : 블러처리된 영상 , edges : Canny엣자 결과
     vector<vector<Point>> contours;
     vector<Vec4i> hierarchy;
 
     while (true) {
-        cap >> frame;
+        cap >> frame; // 웹캠에서 한 프레임 읽기
         if (frame.empty()) break;
 
         // 1️⃣ 흑백 변환
