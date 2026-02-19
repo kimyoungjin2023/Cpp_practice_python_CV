@@ -6,36 +6,29 @@ using namespace std;
 
 int main() {
     VideoCapture cap(0);
-
-    // ✅ 해상도 강제 설정 (Galaxy Book 2 Pro 대응)
-    cap.set(CAP_PROP_FRAME_WIDTH, 640);
-    cap.set(CAP_PROP_FRAME_HEIGHT, 480);
-    cap.set(CAP_PROP_FPS, 30);
-
     if (!cap.isOpened()) {
-        cout << "웹캠 열기 실패" << endl;
+        printf("웹캠 열기 실패\n");
         return -1;
     }
 
-    // ✅ 실제 적용된 해상도 확인
-    cout << "해상도: "
-         << cap.get(CAP_PROP_FRAME_WIDTH) << " x "
-         << cap.get(CAP_PROP_FRAME_HEIGHT) << endl;
-
     Mat frame, gray, blurImg, edges;
     vector<vector<Point>> contours;
+    vector<Vec4i> hierarchy;
+
+    // ✅ FPS 계산용 변수 추가
+    double prevTime = (double)getTickCount();
+    double fps = 0.0;
 
     while (true) {
-        cap.read(frame);
+        cap >> frame;
+        if (frame.empty()) break;
 
-        // ❗ break ❌ → continue ⭕
-        if (frame.empty()) {
-            cout << "프레임 없음" << endl;
-            continue;
-        }
-
-        // 🔹 원본 프레임 먼저 출력 (디버깅용)
-        imshow("Raw Frame", frame);
+        // =====================
+        // FPS 계산
+        // =====================
+        double currentTime = (double)getTickCount();
+        fps = getTickFrequency() / (currentTime - prevTime);
+        prevTime = currentTime;
 
         // 1️⃣ 흑백 변환
         cvtColor(frame, gray, COLOR_BGR2GRAY);
@@ -46,11 +39,11 @@ int main() {
         // 3️⃣ 엣지 검출
         Canny(blurImg, edges, 50, 150);
 
-        // 4️⃣ 윤곽선 검출
-        findContours(edges, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+        // 4️⃣ 윤곽선 찾기
+        findContours(edges, contours, hierarchy,
+                     RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
-        // 가장 큰 윤곽선 찾기
-        double maxArea = 0.0;
+        double maxArea = 0;
         int maxIdx = -1;
 
         for (int i = 0; i < contours.size(); i++) {
@@ -61,7 +54,6 @@ int main() {
             }
         }
 
-        // 5️⃣ 가장 큰 물체 처리
         if (maxIdx >= 0) {
             drawContours(frame, contours, maxIdx, Scalar(0, 255, 0), 2);
 
@@ -74,7 +66,7 @@ int main() {
 
                 putText(frame,
                     "Area: " + to_string((int)maxArea),
-                    Point(cx - 40, cy - 10),
+                    Point(cx - 50, cy - 10),
                     FONT_HERSHEY_SIMPLEX,
                     0.5,
                     Scalar(255, 0, 0),
@@ -82,15 +74,20 @@ int main() {
             }
         }
 
-        // ✅ 결과 출력
-        imshow("Processed Frame", frame);
+        // ✅ FPS 화면 출력 (⭐ 핵심)
+        putText(frame,
+            "FPS: " + to_string((int)fps),
+            Point(10, 30),
+            FONT_HERSHEY_SIMPLEX,
+            0.8,
+            Scalar(0, 255, 255),
+            2);
+
+        imshow("Original", frame);
         imshow("Edges", edges);
 
-        // ESC 종료
         if (waitKey(1) == 27) break;
     }
 
-    cap.release();
-    destroyAllWindows();
     return 0;
 }
